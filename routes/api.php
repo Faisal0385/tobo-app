@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\TaskController;
 use App\Jobs\SendMail;
 use App\Models\Client;
 use Illuminate\Http\Request;
@@ -26,15 +27,12 @@ Route::post('v1/auth/login', [AuthController::class, 'login']);
 Route::post('v1/auth/register', [AuthController::class, 'register']);
 
 Route::middleware(['jwt.auth'])->group(function () {
-    Route::get('v1/clients', function () {
-        $data = Client::get();
-        return response()->json($data);
-    });
+
+    ## Task routes here
+    Route::post('v1/add-task', [TaskController::class, 'addTask']);
+    Route::post('v1/update-task/{id}', [TaskController::class, 'updateTask']);
+
 });
 
 
 
-Route::get('v1/send-email', function () {
-    SendMail::dispatch();
-    dd("email send");
-});

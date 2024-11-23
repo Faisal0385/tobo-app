@@ -66,7 +66,7 @@ if (!function_exists('generateJWTToken')) {
 
         $secretKey = env('JWT_SECRET');
         $issuedAt = time();
-        $expirationTime = $issuedAt + 60; // 8 hours validity
+        $expirationTime = $issuedAt + 3600 * 8; // 8 hours validity
         $payload['iat'] = $issuedAt;
         $payload['exp'] = $expirationTime;
 
