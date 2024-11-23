@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 use App\Jobs\SendMail;
 use App\Models\Client;
 use Carbon\Carbon;
+use Firebase\JWT\JWT;
+use Firebase\JWT\Key;
 use Hash;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -78,7 +80,6 @@ class AuthController extends Controller
         }
     }
 
-
     public function forgotPassword(Request $request)
     {
         $data = Client::where('email', '=', $request->email)->first();
@@ -88,11 +89,85 @@ class AuthController extends Controller
         }
 
         try {
+            $payload = [
+                'email' => $request->email,
+            ];
+
+            ## Generate JWT token
+            $token = generatePassJWTToken($payload);
+
+            $otpNum = rand(1000, 9999);
+
+            $data->update([
+                'otp' => $otpNum
+            ]);
+
             SendMail::dispatch();
-            return jsonResponse("success", 'Email Send', 200);
+            return jsonResponse("success", 'Pls check your email!!', 200, null, $token);
         } catch (\Throwable $th) {
             return jsonResponse("error", 'Invalid credentials', 401);
         }
+    }
 
+    public function otp(Request $request)
+    {
+        ## Get the token from the Authorization header (Bearer token)
+        $token = $request->bearerToken();
+
+        if (!$token) {
+            return jsonResponse("error", 'Token not provided', 401); ## 401 Unauthorized
+        }
+
+        try {
+            $decoded = JWT::decode($token, new Key(env('JWT_SECRET'), env('JWT_ALGO', 'HS256')));
+            $data = Client::where('email', '=', $decoded->email)->where('otp', '=', $request->otp)->first();
+
+            if (empty($data)) {
+                return jsonResponse("error", 'Invalid credentials', 401);
+            }
+
+            return jsonResponse("success", 'OTP is valid', 200);
+        } catch (\Throwable $th) {
+            return jsonResponse("error", 'Invalid credentials', 401);
+        }
+    }
+
+    public function newPassword(Request $request)
+    {
+        ## Validate the input
+        $validator = Validator::make($request->all(), [
+            'password' => 'required|string|confirmed|min:5|max:255',
+        ]);
+
+        if ($validator->fails()) {
+            return jsonResponse("error", 'Validation failed', 422, $validator->errors()); ## 422 Unprocessable Entity
+        }
+
+        ## Get the token from the Authorization header (Bearer token)
+        $token = $request->bearerToken();
+
+        if (!$token) {
+            return jsonResponse("error", 'Token not provided', 401); ## 401 Unauthorized
+        }
+
+        try {
+
+            $decoded = JWT::decode($token, new Key(env('JWT_SECRET'), env('JWT_ALGO', 'HS256')));
+
+            $data = Client::where('email', '=', $decoded->email)->whereNotNull('otp')->first();
+
+            if (empty($data)) {
+                return jsonResponse("error", 'Invalid credentials', 401);
+            }
+
+            $data->update([
+                'otp' => null,
+                'password' => Hash::make($request->password)
+            ]);
+
+            return jsonResponse("success", 'Password updated successfully!!', 200);
+        } catch (\Throwable $th) {
+            return jsonResponse("error", 'Invalid credentials', 401);
+        }
     }
 }

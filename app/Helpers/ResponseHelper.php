@@ -61,12 +61,28 @@ if (!function_exists('generateJWTToken')) {
      */
     function generateJWTToken($payload)
     {
-        // Set timezone (optional)
-        // date_default_timezone_set("Asia/Dhaka");
-
         $secretKey = env('JWT_SECRET');
         $issuedAt = time();
         $expirationTime = $issuedAt + 3600 * 8; // 8 hours validity
+        $payload['iat'] = $issuedAt;
+        $payload['exp'] = $expirationTime;
+
+        return JWT::encode($payload, $secretKey, env('JWT_ALGO', 'HS256'));
+    }
+}
+
+if (!function_exists('generatePassJWTToken')) {
+    /**
+     * Helper function to generate JWT token.
+     *
+     * @param array $payload
+     * @return string
+     */
+    function generatePassJWTToken($payload)
+    {
+        $secretKey = env('JWT_SECRET');
+        $issuedAt = time();
+        $expirationTime = $issuedAt + 60 * 15; // 15 mins validity
         $payload['iat'] = $issuedAt;
         $payload['exp'] = $expirationTime;
 
