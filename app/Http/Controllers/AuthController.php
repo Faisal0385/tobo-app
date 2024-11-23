@@ -1,6 +1,7 @@
 <?php
 
 namespace App\Http\Controllers;
+use App\Jobs\SendMail;
 use App\Models\Client;
 use Carbon\Carbon;
 use Hash;
@@ -38,7 +39,7 @@ class AuthController extends Controller
 
             return jsonLoginSuccess($token, $client);
         } else {
-            return jsonResponse("error", 'Invalid credentials', 401, ); ## 401 Unauthorized
+            return jsonResponse("error", 'Invalid credentials', 401); ## 401 Unauthorized
         }
     }
 
@@ -75,5 +76,23 @@ class AuthController extends Controller
                 'data' => null,
             ], 500);
         }
+    }
+
+
+    public function forgotPassword(Request $request)
+    {
+        $data = Client::where('email', '=', $request->email)->first();
+
+        if (empty($data)) {
+            return jsonResponse("error", 'No data found!!', 404);
+        }
+
+        try {
+            SendMail::dispatch();
+            return jsonResponse("success", 'Email Send', 200);
+        } catch (\Throwable $th) {
+            return jsonResponse("error", 'Invalid credentials', 401);
+        }
+
     }
 }

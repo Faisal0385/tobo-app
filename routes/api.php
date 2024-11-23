@@ -2,8 +2,6 @@
 
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\TaskController;
-use App\Jobs\SendMail;
-use App\Models\Client;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -25,12 +23,16 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 
 Route::post('v1/auth/login', [AuthController::class, 'login']);
 Route::post('v1/auth/register', [AuthController::class, 'register']);
+Route::post('v1/auth/forgot-password', [AuthController::class, 'forgotPassword']);
 
 Route::middleware(['jwt.auth'])->group(function () {
 
     ## Task routes here
-    Route::post('v1/add-task', [TaskController::class, 'addTask']);
-    Route::post('v1/update-task/{id}', [TaskController::class, 'updateTask']);
+    Route::post('v1/add-task', [TaskController::class, 'store']);
+    Route::post('v1/update-task/{id}', [TaskController::class, 'update']);
+    Route::get('v1/delete-task/{id}', [TaskController::class, 'delete']);
+
+    Route::get('v1/status/{id}/{status}', [TaskController::class, 'status']);
 
 });
 

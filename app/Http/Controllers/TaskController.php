@@ -8,7 +8,7 @@ use Illuminate\Http\Request;
 
 class TaskController extends Controller
 {
-    public function addTask(Request $request)
+    public function store(Request $request)
     {
         try {
             DB::table('tasks')->insert([
@@ -25,7 +25,7 @@ class TaskController extends Controller
         }
     }
 
-    public function updateTask(Request $request, $id)
+    public function update(Request $request, $id)
     {
         $data = Task::find($id);
 
@@ -44,4 +44,50 @@ class TaskController extends Controller
             return jsonResponse("error", 'Something went wrong', 500);
         }
     }
+
+    public function delete($id)
+    {
+        $data = Task::find($id);
+
+        if (empty($data)) {
+            return jsonResponse("error", 'No data found!!', 404);
+        }
+
+        try {
+            $data->delete();
+            return jsonResponse("success", 'Data deleted successfully', 201);
+        } catch (\Throwable $th) {
+            return jsonResponse("error", 'Something went wrong', 500);
+        }
+    }
+
+    public function status($id, $status)
+    {
+        $data = Task::find($id);
+
+        if (empty($data)) {
+            return jsonResponse("error", 'No data found!!', 404);
+        }
+
+        try {
+
+            if ($status == 'completed') {
+                $data->update([
+                    'status' => 'completed'
+                ]);
+            }
+
+            if ($status == 'cancel') {
+                $data->update([
+                    'status' => 'cancel'
+                ]);
+            }
+
+            return jsonResponse("success", 'Status updated', 201);
+        } catch (\Throwable $th) {
+            return jsonResponse("error", 'Something went wrong', 500);
+        }
+    }
+
+
 }
