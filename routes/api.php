@@ -2,7 +2,7 @@
 
 use App\Http\Controllers\AuthController;
 use App\Jobs\SendMail;
-use App\Mail\RegisterMail;
+use App\Models\Client;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -24,6 +24,14 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 
 Route::post('v1/auth/login', [AuthController::class, 'login']);
 Route::post('v1/auth/register', [AuthController::class, 'register']);
+
+Route::middleware(['jwt.auth'])->group(function () {
+    Route::get('v1/clients', function () {
+        $data = Client::get();
+        return response()->json($data);
+    });
+});
+
 
 
 Route::get('v1/send-email', function () {

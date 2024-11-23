@@ -3,16 +3,43 @@
 namespace App\Http\Controllers;
 use App\Models\Client;
 use Carbon\Carbon;
-use DB;
 use Hash;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Validator;
 
 class AuthController extends Controller
 {
     public function login(Request $request)
     {
-        return $request;
+        ## Validate the input
+        $validator = Validator::make($request->all(), [
+            'email' => 'required|email',
+            'password' => 'required|string',
+        ]);
+
+        if ($validator->fails()) {
+            return jsonResponse("error", 'Validation failed', 422, $validator->errors()); ## 422 Unprocessable Entity
+        }
+
+        ## Retrieve client by email
+        $client = Client::where('email', $request->email)->first();
+
+        if ($client && Hash::check($request->password, $client->password)) {
+            ## Prepare the payload with the client data
+            $payload = [
+                'sub' => $client->id,   ## Subject (client ID)
+                'email' => $client->email,
+                'role' => $client->role,
+            ];
+
+            ## Generate JWT token
+            $token = generateJWTToken($payload);
+
+            return jsonLoginSuccess($token, $client);
+        } else {
+            return jsonResponse("error", 'Invalid credentials', 401, ); ## 401 Unauthorized
+        }
     }
 
     public function register(Request $request): JsonResponse
