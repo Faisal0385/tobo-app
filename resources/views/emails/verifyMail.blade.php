@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title>OTP MAIL</title>
+    <title>VERIFY MAIL</title>
 </head>
 
 <body>
@@ -17,10 +17,9 @@
                 </a>
             </div>
             <p style="font-size:1.1em">Hi,</p>
-            <p>Your 4 digits OTP numbers.</p>
-            <h2 style="background: #00466a;width: max-content;padding: 0 10px;color: #fff;border-radius: 4px;">
-                {{ $otpNum }}
-            </h2>
+            <p>Thank you for registering with us.</p>
+            <p>Pls verify your account by clicking the link below.</p>
+            <a href="">Click Here</a>
             <p style="font-size:0.9em;">Regards,<br />Thank you</p>
             <hr style="border:none;border-top:1px solid #eee" />
             <div style="float:right;padding:8px 0;color:#aaa;font-size:0.8em;line-height:1;font-weight:300">

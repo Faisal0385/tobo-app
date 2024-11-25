@@ -18,6 +18,7 @@ return new class extends Migration {
             $table->string(column: 'phone');
             $table->string(column: 'email_verify')->nullable();
             $table->integer(column: 'otp')->nullable();
+            $table->integer(column: 'verify')->default(false);
             $table->string(column: 'image')->nullable();
             $table->timestamps();
         });

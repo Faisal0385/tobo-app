@@ -20,12 +20,12 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
 });
 
-
 Route::post('v1/auth/login', [AuthController::class, 'login']);
 Route::post('v1/auth/register', [AuthController::class, 'register']);
 Route::post('v1/auth/forgot-password', [AuthController::class, 'forgotPassword']);
 Route::post('v1/auth/otp', [AuthController::class, 'otp']);
 Route::post('v1/auth/new-password', [AuthController::class, 'newPassword']);
+Route::get('v1/auth/verify-email/{email}', [AuthController::class, 'verifyEmail']);
 
 Route::middleware(['jwt.auth'])->group(function () {
 

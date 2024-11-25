@@ -1,7 +1,9 @@
 <?php
 
 namespace App\Http\Controllers;
+use App\Jobs\ResetMail;
 use App\Jobs\SendMail;
+use App\Mail\ResetPasswordMail;
 use App\Models\Client;
 use Carbon\Carbon;
 use Firebase\JWT\JWT;
@@ -9,6 +11,7 @@ use Firebase\JWT\Key;
 use Hash;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Mail;
 use Validator;
 
 class AuthController extends Controller
@@ -82,7 +85,8 @@ class AuthController extends Controller
 
     public function forgotPassword(Request $request)
     {
-        $data = Client::where('email', '=', $request->email)->first();
+        $email = $request->email;
+        $data = Client::where('email', '=', $email)->first();
 
         if (empty($data)) {
             return jsonResponse("error", 'No data found!!', 404);
@@ -90,7 +94,7 @@ class AuthController extends Controller
 
         try {
             $payload = [
-                'email' => $request->email,
+                'email' => $email,
             ];
 
             ## Generate JWT token
@@ -102,7 +106,7 @@ class AuthController extends Controller
                 'otp' => $otpNum
             ]);
 
-            SendMail::dispatch();
+            ResetMail::dispatch($otpNum, $email);
             return jsonResponse("success", 'Pls check your email!!', 200, null, $token);
         } catch (\Throwable $th) {
             return jsonResponse("error", 'Invalid credentials', 401);
@@ -168,6 +172,36 @@ class AuthController extends Controller
             return jsonResponse("success", 'Password updated successfully!!', 200);
         } catch (\Throwable $th) {
             return jsonResponse("error", 'Invalid credentials', 401);
+        }
+    }
+
+    public function verifyEmail($email)
+    {
+        ## Validate the input
+        $validator = Validator::make(['email' => $email], [
+            'email' => 'required|email',
+        ]);
+
+        if ($validator->fails()) {
+            return jsonResponse("error", 'Validation failed', 422, $validator->errors()); ## 422 Unprocessable Entity
+        }
+
+        $client = Client::where('email', '=', $email)->first();
+
+        if ($client) {
+            switch ($client->verify) {
+                case false:
+                    $client->update([
+                        'verify' => true
+                    ]);
+                    return redirect('/login');
+                case true:
+                    return jsonResponse("error", 'Already verified!!', 200);
+                default:
+                    return redirect('/login');
+            }
+        } else {
+            return jsonResponse("error", 'No email found!!', 404); ## 422 Unprocessable Entity
         }
     }
 }

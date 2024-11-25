@@ -15,4 +15,4 @@ Route::get('/', function () {
     return view('welcome');
 });
 
-Route::get('/send-mail', fn() => View('emails.otpMail'));
+Route::get('/login', fn() => View('welcome'));
