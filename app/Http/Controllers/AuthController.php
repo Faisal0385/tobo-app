@@ -2,8 +2,6 @@
 
 namespace App\Http\Controllers;
 use App\Jobs\ResetMail;
-use App\Jobs\SendMail;
-use App\Mail\ResetPasswordMail;
 use App\Models\Client;
 use Carbon\Carbon;
 use Firebase\JWT\JWT;
@@ -11,7 +9,6 @@ use Firebase\JWT\Key;
 use Hash;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Mail;
 use Validator;
 
 class AuthController extends Controller
@@ -68,18 +65,9 @@ class AuthController extends Controller
             $client->created_at = Carbon::now();
             $client->save();
 
-            return response()->json([
-                'status' => 'success',
-                'message' => 'Registered Successfully!',
-                'data' => null,
-            ], 201);
-
+            return jsonResponse("success", 'Registered Successfully!!', 201);
         } catch (\Throwable $th) {
-            return response()->json([
-                'status' => 'error',
-                'message' => 'Registration Failed!',
-                'data' => null,
-            ], 500);
+            return jsonResponse("error", 'Registration Failed!!', 500);
         }
     }
 
@@ -99,7 +87,6 @@ class AuthController extends Controller
 
             ## Generate JWT token
             $token = generatePassJWTToken($payload);
-
             $otpNum = rand(1000, 9999);
 
             $data->update([
@@ -157,7 +144,6 @@ class AuthController extends Controller
         try {
 
             $decoded = JWT::decode($token, new Key(env('JWT_SECRET'), env('JWT_ALGO', 'HS256')));
-
             $data = Client::where('email', '=', $decoded->email)->whereNotNull('otp')->first();
 
             if (empty($data)) {
